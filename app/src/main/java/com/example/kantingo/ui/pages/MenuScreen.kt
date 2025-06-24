@@ -1,3 +1,5 @@
+// file: app/src/main/java/com/example/kantingo/ui/pages/MenuScreen.kt
+
 package com.example.kantingo.ui.pages
 
 import androidx.compose.animation.AnimatedVisibility
@@ -14,8 +16,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,93 +27,79 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController // Import for Preview only
+import androidx.navigation.compose.rememberNavController
+import com.example.kantingo.R
 import com.example.kantingo.data.DummyData
 import com.example.kantingo.data.FoodItem
 import com.example.kantingo.data.MenuItem
-import com.example.kantingo.navigation.AppRoutes // Import AppRoutes for navigation
+import com.example.kantingo.navigation.AppRoutes
 import com.example.kantingo.ui.components.AppBottomNavigationBar
 import com.example.kantingo.ui.theme.KantinGoTheme
+import com.example.kantingo.viewmodel.CartViewModel
 
 val AvatarBackgroundColor = Color(0xFFE0B2B2)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuScreen(navController: NavController) { // Added navController parameter
-    // State to track the currently selected item in the bottom navigation bar.
-    // Menu is at index 0.
+fun MenuScreen(
+    navController: NavController,
+    cartViewModel: CartViewModel
+) {
     var selectedItem by remember { mutableIntStateOf(0) }
-    // State to track quantities of food items in the cart.
-    var cartQuantities by remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
+    var expandedCardId by remember { mutableStateOf<Int?>(null) }
 
-    // Calculate the total number of items in the cart for the notification badge.
-    val totalCartItems = cartQuantities.values.sum()
-
-    // Function to increase the quantity of a food item in the cart.
-    val onIncrease = { foodId: Int ->
-        val currentQuantity = cartQuantities[foodId] ?: 0
-        cartQuantities = cartQuantities.toMutableMap().apply {
-            this[foodId] = currentQuantity + 1
-        }
-    }
-
-    // Function to decrease the quantity of a food item in the cart.
-    val onDecrease = { foodId: Int ->
-        val currentQuantity = cartQuantities[foodId] ?: 0
-        if (currentQuantity > 0) {
-            cartQuantities = cartQuantities.toMutableMap().apply {
-                if (currentQuantity == 1) {
-                    this.remove(foodId) // Remove item if quantity becomes 0.
-                } else {
-                    this[foodId] = currentQuantity - 1
-                }
-            }
-        }
-    }
+    // Ambil data langsung dari ViewModel
+    val cartQuantities by cartViewModel.cart.collectAsState()
+    val totalCartItems by cartViewModel.totalCartItems.collectAsState()
 
     Scaffold(
         bottomBar = {
             AppBottomNavigationBar(
                 selectedItem = selectedItem,
                 onItemSelected = { index ->
-                    // Update the local selected item state for visual feedback.
                     selectedItem = index
-                    // Handle navigation based on the selected bottom bar item.
                     when (index) {
-                        0 -> { /* Already on Menu Screen, do nothing or handle refresh */ }
+                        0 -> { /* Already on Menu Screen */ }
                         1 -> navController.navigate(AppRoutes.HISTORY_SCREEN) {
-                            // Pop up to the Menu screen and make it inclusive to clear back stack.
                             popUpTo(AppRoutes.MENU_SCREEN) { inclusive = true }
                         }
                         2 -> navController.navigate(AppRoutes.PROFILE_SCREEN) {
-                            // Pop up to the Menu screen and make it inclusive to clear back stack.
                             popUpTo(AppRoutes.MENU_SCREEN) { inclusive = true }
                         }
                     }
                 }
             )
         },
-        containerColor = Color(0xFFF0F0F0) // Light grey background for the scaffold.
+        containerColor = Color(0xFFF0F0F0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(paddingValues) // Apply padding to account for the bottom bar.
-                .padding(horizontal = 16.dp) // Horizontal padding for content.
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp)) // Top spacer.
-            Header("Davidson Edgar", totalCartItems = totalCartItems) // Header with user name and cart count.
-            Spacer(modifier = Modifier.height(24.dp)) // Spacer.
+            Spacer(modifier = Modifier.height(16.dp))
+            Header(
+                name = "Davidson Edgar",
+                totalCartItems = totalCartItems,
+                onCartClick = { navController.navigate(AppRoutes.CART_SCREEN) } // Navigasi ke Cart
+            )
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "What would you like to do?",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.height(16.dp)) // Spacer.
+            Spacer(modifier = Modifier.height(16.dp))
             MenuList(
+                expandedCardId = expandedCardId,
+                onCardClick = { id ->
+                    expandedCardId = if (expandedCardId == id) null else id
+                },
                 cartQuantities = cartQuantities,
-                onIncrease = onIncrease,
-                onDecrease = onDecrease
+                onIncrease = cartViewModel::increaseQuantity,
+                onDecrease = cartViewModel::decreaseQuantity
             )
         }
     }
@@ -121,7 +107,11 @@ fun MenuScreen(navController: NavController) { // Added navController parameter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Header(name: String, totalCartItems: Int) {
+fun Header(
+    name: String,
+    totalCartItems: Int,
+    onCartClick: () -> Unit // Terima aksi klik
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -140,7 +130,8 @@ fun Header(name: String, totalCartItems: Int) {
                     if (totalCartItems > 0) {
                         Badge { Text(text = "$totalCartItems") }
                     }
-                }
+                },
+                modifier = Modifier.clickable(onClick = onCartClick) // Buat bisa di klik
             ) {
                 Icon(
                     imageVector = Icons.Filled.ShoppingCart,
@@ -150,7 +141,10 @@ fun Header(name: String, totalCartItems: Int) {
                 )
             }
             Box(
-                modifier = Modifier.size(40.dp).clip(CircleShape).background(AvatarBackgroundColor),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(AvatarBackgroundColor),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "DE", color = Color.White, fontWeight = FontWeight.Bold)
@@ -161,27 +155,24 @@ fun Header(name: String, totalCartItems: Int) {
 
 @Composable
 fun MenuList(
+    expandedCardId: Int?,
+    onCardClick: (Int) -> Unit,
     cartQuantities: Map<Int, Int>,
     onIncrease: (Int) -> Unit,
     onDecrease: (Int) -> Unit
 ) {
-    var expandedCardId by remember { mutableStateOf<Int?>(null) }
-    val menuItems = DummyData.menuItems // Assuming DummyData.menuItems is available.
+    val menuItems = DummyData.menuItems
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         menuItems.forEach { menuItem ->
             item(key = "card_${menuItem.id}") {
                 MenuItemCard(
                     menuItem = menuItem,
-                    onClick = {
-                        // Toggle the expanded state of the card.
-                        expandedCardId = if (expandedCardId == menuItem.id) null else menuItem.id
-                    }
+                    onClick = { onCardClick(menuItem.id) }
                 )
             }
             item(key = "details_${menuItem.id}") {
                 AnimatedVisibility(visible = expandedCardId == menuItem.id) {
-                    // Show food item details only if the card is expanded.
                     FoodItemDetailsCard(
                         menuItem = menuItem,
                         cartQuantities = cartQuantities,
@@ -200,18 +191,17 @@ fun MenuItemCard(menuItem: MenuItem, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp)
-            .clickable { onClick() }, // Make the card clickable.
-        shape = RoundedCornerShape(16.dp), // Apply rounded corners.
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Add shadow.
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
-                painter = painterResource(id = menuItem.imageResId), // Load image from resources.
+                painter = painterResource(id = menuItem.imageResId),
                 contentDescription = menuItem.title,
-                contentScale = ContentScale.Crop, // Crop image to fill bounds.
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            // Gradient overlay for better text readability.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -226,7 +216,7 @@ fun MenuItemCard(menuItem: MenuItem, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.Bottom // Align content to the bottom.
+                verticalArrangement = Arrangement.Bottom
             ) {
                 Text(text = menuItem.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -235,7 +225,6 @@ fun MenuItemCard(menuItem: MenuItem, onClick: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 fun FoodItemDetailsCard(
@@ -247,10 +236,10 @@ fun FoodItemDetailsCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp), // Padding around the card.
-        shape = RoundedCornerShape(16.dp), // Rounded corners.
-        colors = CardDefaults.cardColors(containerColor = Color.White), // White background.
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Shadow.
+            .padding(top = 8.dp, bottom = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -263,10 +252,10 @@ fun FoodItemDetailsCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp), // Vertical padding for each food item row.
+                        .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) { // Takes available space.
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(text = foodItem.name)
                         Text(
                             text = "Rp ${foodItem.price}",
@@ -276,26 +265,21 @@ fun FoodItemDetailsCard(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between buttons and quantity.
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Decrement button.
                         IconButton(
                             onClick = { onDecrease(foodItem.id) },
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(imageVector = Icons.Default.Remove, contentDescription = "Kurangi")
                         }
-
-                        // Quantity display.
                         Text(
                             text = (cartQuantities[foodItem.id] ?: 0).toString(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
-
-                        // Increment button.
                         IconButton(
-                            onClick = { onIncrease(foodItem.id) }, // Corrected foodId.id to foodItem.id
+                            onClick = { onIncrease(foodItem.id) },
                             modifier = Modifier.size(28.dp)
                         ) {
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Tambah")
@@ -307,12 +291,13 @@ fun FoodItemDetailsCard(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun MenuScreenPreview() {
     KantinGoTheme {
-        // Pass a dummy NavController for preview purposes.
-        MenuScreen(rememberNavController())
+        MenuScreen(
+            navController = rememberNavController(),
+            cartViewModel = viewModel()
+        )
     }
 }

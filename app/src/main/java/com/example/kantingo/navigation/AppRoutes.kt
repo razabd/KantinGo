@@ -7,4 +7,5 @@ object AppRoutes {
     const val MENU_SCREEN = "menu"
     const val HISTORY_SCREEN = "history_screen"
     const val PROFILE_SCREEN = "profile_screen"
+    const val CART_SCREEN = "cart"
 }

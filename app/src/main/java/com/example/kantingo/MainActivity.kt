@@ -9,18 +9,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.kantingo.navigation.AppRoutes
-import com.example.kantingo.ui.theme.KantinGoTheme
 import com.example.kantingo.ui.pages.HistoryScreen
 import com.example.kantingo.ui.pages.MenuScreen
 import com.example.kantingo.ui.pages.OtpVerificationScreen
 import com.example.kantingo.ui.pages.ProfileScreen
 import com.example.kantingo.ui.pages.SignInScreen
 import com.example.kantingo.ui.pages.SignUpScreen
-
+import com.example.kantingo.ui.theme.KantinGoTheme
+import com.example.kantingo.viewmodel.CartViewModel
+import com.example.kantingo.ui.pages.CartScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +32,8 @@ class MainActivity : ComponentActivity() {
             KantinGoTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
+                    // Membuat instance CartViewModel yang akan dibagikan ke screen yang membutuhkan
+                    val cartViewModel: CartViewModel = viewModel()
 
                     NavHost(
                         navController = navController,
@@ -70,7 +74,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(route = AppRoutes.MENU_SCREEN) {
-                            MenuScreen(navController = navController)
+                            // Mengirim navController dan cartViewModel ke MenuScreen
+                            MenuScreen(
+                                navController = navController,
+                                cartViewModel = cartViewModel
+                            )
                         }
 
                         composable(route = AppRoutes.HISTORY_SCREEN) {
@@ -79,6 +87,13 @@ class MainActivity : ComponentActivity() {
 
                         composable(route = AppRoutes.PROFILE_SCREEN) {
                             ProfileScreen(navController = navController)
+                        }
+
+                        composable(route = AppRoutes.CART_SCREEN) {
+                            CartScreen(
+                                navController = navController,
+                                cartViewModel = cartViewModel
+                            )
                         }
                     }
                 }
