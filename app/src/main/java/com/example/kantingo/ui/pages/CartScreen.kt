@@ -39,39 +39,44 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
     Scaffold(
         containerColor = Color(0xFFF0F0F0)
     ) { paddingValues ->
-        if (groupedItems.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Keranjang Anda masih kosong.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    CartHeader(navController)
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CartHeader(navController)
+            Spacer(modifier = Modifier.height(16.dp))
 
-                items(groupedItems, key = { it.vendor.id }) { groupedItem ->
-                    VendorCartCard(
-                        groupedItem = groupedItem,
-                        onIncrease = { cartViewModel.increaseQuantity(it) },
-                        onDecrease = { cartViewModel.decreaseQuantity(it) }
+            if (groupedItems.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Keranjang Anda masih kosong.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
 
-                item {
-                    TotalSummaryCard(totalPrice)
+                    items(groupedItems, key = { it.vendor.id }) { groupedItem ->
+                        VendorCartCard(
+                            groupedItem = groupedItem,
+                            onIncrease = { cartViewModel.increaseQuantity(it) },
+                            onDecrease = { cartViewModel.decreaseQuantity(it) }
+                        )
+                    }
+
+                    item {
+                        TotalSummaryCard(totalPrice)
+                    }
                 }
             }
         }
@@ -175,7 +180,6 @@ fun OutlinedIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, conte
     }
 }
 
-
 @Composable
 fun TotalSummaryCard(totalPrice: Int) {
     Card(
@@ -203,8 +207,12 @@ fun TotalSummaryCard(totalPrice: Int) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { /* TODO: Arahkan ke Proses Pembayaran */ },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006970))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF006970)
+                )
             ) {
                 Text("Pesan & Bayar Sekarang", fontSize = 16.sp)
             }
@@ -212,10 +220,17 @@ fun TotalSummaryCard(totalPrice: Int) {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun CartScreenPreview() {
+    KantinGoTheme {
+        CartScreen(navController = rememberNavController(), cartViewModel = viewModel())
+    }
+}
+
+@Preview(showBackground = true, name = "Cart Screen With Items")
+@Composable
+fun CartScreenWithItemsPreview() {
     val previewViewModel = viewModel<CartViewModel>()
     previewViewModel.increaseQuantity(101)
     previewViewModel.increaseQuantity(101)
