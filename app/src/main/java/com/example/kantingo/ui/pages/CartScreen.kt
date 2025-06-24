@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,9 +26,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.kantingo.data.FoodItem
+import com.example.kantingo.navigation.AppRoutes
 import com.example.kantingo.ui.theme.KantinGoTheme
 import com.example.kantingo.viewmodel.CartViewModel
+import com.example.kantingo.viewmodel.DeliveryOption
 import com.example.kantingo.viewmodel.GroupedCartItem
+import com.example.kantingo.viewmodel.PaymentOption
 import java.text.NumberFormat
 import java.util.*
 
@@ -35,6 +39,8 @@ import java.util.*
 fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
     val groupedItems by cartViewModel.groupedCartItems.collectAsState()
     val totalPrice by cartViewModel.totalPrice.collectAsState()
+    val deliveryOption by cartViewModel.selectedDeliveryOption.collectAsState()
+    val paymentOption by cartViewModel.selectedPaymentOption.collectAsState()
 
     Scaffold(
         containerColor = Color(0xFFF0F0F0)
@@ -43,7 +49,6 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             CartHeader(navController)
@@ -55,17 +60,17 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Keranjang Anda masih kosong.",
+                        "Your cart is empty.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
                 LazyColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-
                     items(groupedItems, key = { it.vendor.id }) { groupedItem ->
                         VendorCartCard(
                             groupedItem = groupedItem,
@@ -75,7 +80,26 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
                     }
 
                     item {
-                        TotalSummaryCard(totalPrice)
+                        DeliveryOptionCard(
+                            selectedOption = deliveryOption,
+                            onOptionSelected = { cartViewModel.selectDeliveryOption(it) }
+                        )
+                    }
+
+                    item {
+                        PaymentOptionCard(
+                            selectedOption = paymentOption,
+                            onOptionSelected = { cartViewModel.selectPaymentOption(it) }
+                        )
+                    }
+
+                    item {
+                        TotalSummaryCard(totalPrice) {
+                            cartViewModel.placeOrder()
+                            navController.navigate(AppRoutes.HISTORY_SCREEN) {
+                                popUpTo(AppRoutes.MENU_SCREEN)
+                            }
+                        }
                     }
                 }
             }
@@ -87,14 +111,16 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
 private fun CartHeader(navController: NavController) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         IconButton(onClick = { navController.popBackStack() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Keranjang Saya",
+            text = "My Cart",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -174,14 +200,79 @@ fun CartItemRow(
 }
 
 @Composable
-fun OutlinedIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    OutlinedButton(onClick = onClick, shape = CircleShape, contentPadding = PaddingValues(0.dp), modifier = modifier) {
-        content()
+fun DeliveryOptionCard(selectedOption: DeliveryOption, onOptionSelected: (DeliveryOption) -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Delivery Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableChip(
+                    label = "Pick Up",
+                    isSelected = selectedOption == DeliveryOption.PICK_UP,
+                    onClick = { onOptionSelected(DeliveryOption.PICK_UP) }
+                )
+                SelectableChip(
+                    label = "Deliver to Table",
+                    isSelected = selectedOption == DeliveryOption.DELIVER_TO_TABLE,
+                    onClick = { onOptionSelected(DeliveryOption.DELIVER_TO_TABLE) }
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TotalSummaryCard(totalPrice: Int) {
+fun PaymentOptionCard(selectedOption: PaymentOption, onOptionSelected: (PaymentOption) -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Payment Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableChip(
+                    label = "Cash",
+                    isSelected = selectedOption == PaymentOption.CASH,
+                    onClick = { onOptionSelected(PaymentOption.CASH) }
+                )
+                SelectableChip(
+                    label = "QRIS",
+                    isSelected = selectedOption == PaymentOption.QRIS,
+                    onClick = { onOptionSelected(PaymentOption.QRIS) }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectableChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = isSelected,
+        onClick = onClick,
+        label = { Text(label) },
+        leadingIcon = if (isSelected) {
+            { Icon(imageVector = Icons.Filled.Check, contentDescription = "Selected") }
+        } else {
+            null
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = Color(0xFFB2E0E0),
+            selectedLabelColor = Color(0xFF003333),
+            selectedLeadingIconColor = Color(0xFF003333)
+        )
+    )
+}
+
+@Composable
+fun TotalSummaryCard(totalPrice: Int, onOrderClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -197,7 +288,7 @@ fun TotalSummaryCard(totalPrice: Int) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Total Pembayaran", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Total Payment", style = MaterialTheme.typography.titleMedium)
                 Text(
                     text = "Rp ${NumberFormat.getNumberInstance(Locale.US).format(totalPrice)}",
                     style = MaterialTheme.typography.titleLarge,
@@ -206,17 +297,20 @@ fun TotalSummaryCard(totalPrice: Int) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { /* TODO: Arahkan ke Proses Pembayaran */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF006970)
-                )
+                onClick = onOrderClick,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006970))
             ) {
-                Text("Pesan & Bayar Sekarang", fontSize = 16.sp)
+                Text("Order Now", fontSize = 16.sp)
             }
         }
+    }
+}
+
+@Composable
+fun OutlinedIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    OutlinedButton(onClick = onClick, shape = CircleShape, contentPadding = PaddingValues(0.dp), modifier = modifier) {
+        content()
     }
 }
 
@@ -233,9 +327,10 @@ fun CartScreenPreview() {
 fun CartScreenWithItemsPreview() {
     val previewViewModel = viewModel<CartViewModel>()
     previewViewModel.increaseQuantity(101)
-    previewViewModel.increaseQuantity(101)
     previewViewModel.increaseQuantity(103)
     previewViewModel.increaseQuantity(201)
+    previewViewModel.selectDeliveryOption(DeliveryOption.DELIVER_TO_TABLE)
+    previewViewModel.selectPaymentOption(PaymentOption.QRIS)
 
     KantinGoTheme {
         CartScreen(navController = rememberNavController(), cartViewModel = previewViewModel)

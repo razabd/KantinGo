@@ -74,7 +74,6 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(route = AppRoutes.MENU_SCREEN) {
-                            // Mengirim navController dan cartViewModel ke MenuScreen
                             MenuScreen(
                                 navController = navController,
                                 cartViewModel = cartViewModel
@@ -82,7 +81,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(route = AppRoutes.HISTORY_SCREEN) {
-                            HistoryScreen(navController = navController)
+                            HistoryScreen(
+                                navController = navController,
+                                cartViewModel = cartViewModel
+                            )
                         }
 
                         composable(route = AppRoutes.PROFILE_SCREEN) {

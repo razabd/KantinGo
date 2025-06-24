@@ -1,5 +1,3 @@
-// file: app/src/main/java/com/example/kantingo/ui/pages/MenuScreen.kt
-
 package com.example.kantingo.ui.pages
 
 import androidx.compose.animation.AnimatedVisibility
@@ -50,7 +48,6 @@ fun MenuScreen(
     var selectedItem by remember { mutableIntStateOf(0) }
     var expandedCardId by remember { mutableStateOf<Int?>(null) }
 
-    // Ambil data langsung dari ViewModel
     val cartQuantities by cartViewModel.cart.collectAsState()
     val totalCartItems by cartViewModel.totalCartItems.collectAsState()
 
@@ -83,7 +80,8 @@ fun MenuScreen(
             Header(
                 name = "Davidson Edgar",
                 totalCartItems = totalCartItems,
-                onCartClick = { navController.navigate(AppRoutes.CART_SCREEN) } // Navigasi ke Cart
+                onCartClick = { navController.navigate(AppRoutes.CART_SCREEN) },
+                onAvatarClick = { navController.navigate(AppRoutes.PROFILE_SCREEN) }
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
@@ -110,7 +108,8 @@ fun MenuScreen(
 fun Header(
     name: String,
     totalCartItems: Int,
-    onCartClick: () -> Unit // Terima aksi klik
+    onCartClick: () -> Unit,
+    onAvatarClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -131,7 +130,7 @@ fun Header(
                         Badge { Text(text = "$totalCartItems") }
                     }
                 },
-                modifier = Modifier.clickable(onClick = onCartClick) // Buat bisa di klik
+                modifier = Modifier.clickable(onClick = onCartClick)
             ) {
                 Icon(
                     imageVector = Icons.Filled.ShoppingCart,
@@ -144,7 +143,8 @@ fun Header(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(AvatarBackgroundColor),
+                    .background(AvatarBackgroundColor)
+                    .clickable(onClick = onAvatarClick),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "DE", color = Color.White, fontWeight = FontWeight.Bold)
