@@ -28,9 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.kantingo.R
 import com.example.kantingo.data.DummyData
-import com.example.kantingo.data.FoodItem
 import com.example.kantingo.data.MenuItem
 import com.example.kantingo.navigation.AppRoutes
 import com.example.kantingo.ui.components.AppBottomNavigationBar

@@ -27,7 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kantingo.navigation.AppRoutes
 import com.example.kantingo.ui.components.AppBottomNavigationBar
 import com.example.kantingo.ui.theme.KantinGoTheme
-import com.example.kantingo.ui.theme.AvatarBackgroundColor // Imported AvatarBackgroundColor
+import com.example.kantingo.ui.theme.AvatarBackgroundColor
 
 @Composable
 fun ProfileScreen(navController: NavController) {
