@@ -15,6 +15,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.kantingo.navigation.AppRoutes
 import com.example.kantingo.ui.theme.KantinGoTheme
 import com.example.kantingo.ui.pages.HistoryScreen
+import com.example.kantingo.ui.pages.MenuScreen
+import com.example.kantingo.ui.pages.OtpVerificationScreen
+import com.example.kantingo.ui.pages.ProfileScreen
+import com.example.kantingo.ui.pages.SignInScreen
+import com.example.kantingo.ui.pages.SignUpScreen
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +36,6 @@ class MainActivity : ComponentActivity() {
                         startDestination = AppRoutes.SIGN_IN_SCREEN
                     ) {
                         composable(route = AppRoutes.SIGN_IN_SCREEN) {
-                            // SignInScreen handles its own navigation based on success/failure.
                             SignInScreen(
                                 onSignInSuccess = {
                                     navController.navigate(AppRoutes.OTP_SCREEN)
@@ -42,24 +47,20 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(route = AppRoutes.SIGN_UP_SCREEN) {
-                            // SignUpScreen handles its own navigation after sign up.
                             SignUpScreen(
                                 onSignUpSuccess = {
-                                    navController.popBackStack() // Go back to sign in.
+                                    navController.popBackStack()
                                 },
                                 onNavigateToSignIn = {
-                                    navController.popBackStack() // Go back to sign in.
+                                    navController.popBackStack()
                                 }
                             )
                         }
 
                         composable(route = AppRoutes.OTP_SCREEN) {
-                            // OtpVerificationScreen navigates to the main menu upon success.
                             OtpVerificationScreen(
                                 onVerificationSuccess = {
                                     navController.navigate(AppRoutes.MENU_SCREEN) {
-                                        // Clear the back stack up to and including the sign-in screen
-                                        // so that the user cannot go back to auth screens after login.
                                         popUpTo(AppRoutes.SIGN_IN_SCREEN) {
                                             inclusive = true
                                         }
@@ -69,20 +70,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(route = AppRoutes.MENU_SCREEN) {
-                            // Pass the navController to MenuScreen so it can handle
-                            // bottom navigation bar clicks.
                             MenuScreen(navController = navController)
                         }
 
-                        // Define the composable for the History screen.
                         composable(route = AppRoutes.HISTORY_SCREEN) {
-                            // Pass the navController to HistoryScreen for bottom navigation.
                             HistoryScreen(navController = navController)
                         }
 
-                        // Define the composable for the Profile screen.
                         composable(route = AppRoutes.PROFILE_SCREEN) {
-                            // Pass the navController to ProfileScreen for bottom navigation.
                             ProfileScreen(navController = navController)
                         }
                     }

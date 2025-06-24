@@ -1,6 +1,4 @@
-// file: app/src/main/java/com/example/kantingo/SignUpScreen.kt
-
-package com.example.kantingo
+package com.example.kantingo.ui.pages
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -23,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.kantingo.R
 
 @Composable
 fun SignUpScreen(

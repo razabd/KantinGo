@@ -1,6 +1,4 @@
-// file: app/src/main/java/com/example/kantingo/MenuScreen.kt
-
-package com.example.kantingo
+package com.example.kantingo.ui.pages
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image

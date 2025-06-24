@@ -1,6 +1,4 @@
-// file: app/src/main/java/com/example/kantingo/ProfileScreen.kt
-
-package com.example.kantingo
+package com.example.kantingo.ui.pages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -31,35 +29,21 @@ import com.example.kantingo.ui.components.AppBottomNavigationBar
 import com.example.kantingo.ui.theme.KantinGoTheme
 import com.example.kantingo.ui.theme.AvatarBackgroundColor // Imported AvatarBackgroundColor
 
-/**
- * Composable function for the Profile screen.
- * Displays Davidson Edgar's profile details and includes the bottom navigation bar.
- *
- * @param navController The NavController to handle navigation actions.
- */
 @Composable
 fun ProfileScreen(navController: NavController) {
-    // Set the selected item for the bottom navigation bar to "Profile" (index 2).
     var selectedItem by remember { mutableIntStateOf(2) }
 
     Scaffold(
-        // Define the bottom navigation bar.
         bottomBar = {
             AppBottomNavigationBar(
                 selectedItem = selectedItem,
                 onItemSelected = { index ->
-                    // Update the selected item state.
                     selectedItem = index
-                    // Navigate based on the selected item index.
                     when (index) {
                         0 -> navController.navigate(AppRoutes.MENU_SCREEN) {
-                            // Pop up to the Menu screen and make it inclusive,
-                            // clearing the back stack up to and including MenuScreen.
                             popUpTo(AppRoutes.MENU_SCREEN) { inclusive = true }
                         }
                         1 -> navController.navigate(AppRoutes.HISTORY_SCREEN) {
-                            // Pop up to the Menu screen and make it inclusive,
-                            // clearing the back stack up to and including MenuScreen.
                             popUpTo(AppRoutes.MENU_SCREEN) { inclusive = true }
                         }
                         2 -> { /* Already on Profile Screen, do nothing or handle refresh */ }
@@ -67,71 +51,69 @@ fun ProfileScreen(navController: NavController) {
                 }
             )
         },
-        containerColor = Color(0xFFF0F0F0) // Set a light grey background color.
+        containerColor = Color(0xFFF0F0F0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize() // Make the column fill the entire available space.
-                .padding(paddingValues) // Apply padding from the Scaffold (for bottom bar).
-                .padding(16.dp), // Add general padding.
-            horizontalAlignment = Alignment.CenterHorizontally, // Center content horizontally.
-            verticalArrangement = Arrangement.Center // Center content vertically (primary axis for column).
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(32.dp)) // Spacer for top margin.
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Avatar for Davidson Edgar.
             Box(
                 modifier = Modifier
-                    .size(120.dp) // Set size for the avatar.
-                    .clip(CircleShape) // Clip to a circle shape.
-                    .background(AvatarBackgroundColor), // Apply a background color.
-                contentAlignment = Alignment.Center // Center content inside the box.
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(AvatarBackgroundColor),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "DE", // Initials.
-                    color = Color.White, // White text color.
-                    fontWeight = FontWeight.Bold, // Bold font weight.
-                    fontSize = 48.sp // Large font size.
+                    text = "DE",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 48.sp
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp)) // Spacer below the avatar.
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Card displaying profile details.
             Card(
-                modifier = Modifier.fillMaxWidth(0.8f), // Make card fill 80% of width.
-                shape = RoundedCornerShape(16.dp), // Rounded corners.
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp), // Add elevation.
-                colors = CardDefaults.cardColors(containerColor = Color.White) // White background for the card.
+                modifier = Modifier.fillMaxWidth(0.8f),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth() // Make column fill card width.
-                        .padding(24.dp), // Padding inside the card.
-                    horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally.
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Davidson Edgar", // Name.
-                        style = MaterialTheme.typography.headlineSmall, // Apply headline small style.
-                        fontWeight = FontWeight.Bold, // Bold font weight.
-                        color = Color.Black // Black text color.
+                        text = "Davidson Edgar",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
-                    Spacer(modifier = Modifier.height(8.dp)) // Spacer.
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "davidson.edgar@example.com", // Email.
-                        style = MaterialTheme.typography.bodyLarge, // Body large style.
-                        color = Color.Gray // Gray text color.
+                        text = "davidson.edgar@example.com",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray
                     )
-                    Spacer(modifier = Modifier.height(4.dp)) // Spacer.
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "+62 812-3456-7890", // Phone number.
-                        style = MaterialTheme.typography.bodyLarge, // Body large style.
-                        color = Color.Gray // Gray text color.
+                        text = "+62 812-3456-7890",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray
                     )
-                    Spacer(modifier = Modifier.height(4.dp)) // Spacer.
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Student at University of X", // Occupation/status.
-                        style = MaterialTheme.typography.bodyLarge, // Body large style.
-                        color = Color.Gray // Gray text color.
+                        text = "Student at University of X",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray
                     )
                 }
             }
@@ -143,7 +125,6 @@ fun ProfileScreen(navController: NavController) {
 @Composable
 fun ProfileScreenPreview() {
     KantinGoTheme {
-        // Provide a dummy NavController for preview purposes.
         ProfileScreen(rememberNavController())
     }
 }
