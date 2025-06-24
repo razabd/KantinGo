@@ -2,7 +2,6 @@ package com.example.kantingo.ui.pages
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -68,40 +67,122 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(groupedItems, key = { it.vendor.id }) { groupedItem ->
-                        VendorCartCard(
-                            groupedItem = groupedItem,
-                            onIncrease = { cartViewModel.increaseQuantity(it) },
-                            onDecrease = { cartViewModel.decreaseQuantity(it) }
-                        )
-                    }
-
                     item {
-                        DeliveryOptionCard(
-                            selectedOption = deliveryOption,
-                            onOptionSelected = { cartViewModel.selectDeliveryOption(it) }
-                        )
-                    }
-
-                    item {
-                        PaymentOptionCard(
-                            selectedOption = paymentOption,
-                            onOptionSelected = { cartViewModel.selectPaymentOption(it) }
-                        )
-                    }
-
-                    item {
-                        TotalSummaryCard(totalPrice) {
-                            cartViewModel.placeOrder()
-                            navController.navigate(AppRoutes.HISTORY_SCREEN) {
-                                popUpTo(AppRoutes.MENU_SCREEN)
+                        OrderDetailsCard(
+                            groupedItems = groupedItems,
+                            totalPrice = totalPrice,
+                            deliveryOption = deliveryOption,
+                            paymentOption = paymentOption,
+                            onIncrease = cartViewModel::increaseQuantity,
+                            onDecrease = cartViewModel::decreaseQuantity,
+                            onDeliveryOptionSelected = cartViewModel::selectDeliveryOption,
+                            onPaymentOptionSelected = cartViewModel::selectPaymentOption,
+                            onOrderClick = {
+                                cartViewModel.placeOrder()
+                                navController.navigate(AppRoutes.HISTORY_SCREEN) {
+                                    popUpTo(AppRoutes.MENU_SCREEN)
+                                }
                             }
-                        }
+                        )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun OrderDetailsCard(
+    groupedItems: List<GroupedCartItem>,
+    totalPrice: Int,
+    deliveryOption: DeliveryOption,
+    paymentOption: PaymentOption,
+    onIncrease: (Int) -> Unit,
+    onDecrease: (Int) -> Unit,
+    onDeliveryOptionSelected: (DeliveryOption) -> Unit,
+    onPaymentOptionSelected: (PaymentOption) -> Unit,
+    onOrderClick: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            groupedItems.forEach { groupedItem ->
+                Text(
+                    text = groupedItem.vendor.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                groupedItem.items.forEach { (foodItem, quantity) ->
+                    CartItemRow(
+                        foodItem = foodItem,
+                        quantity = quantity,
+                        onIncrease = { onIncrease(foodItem.id) },
+                        onDecrease = { onDecrease(foodItem.id) }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Divider(modifier = Modifier.padding(bottom = 16.dp))
+            Text("Delivery Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableChip(
+                    label = "Pick Up",
+                    isSelected = deliveryOption == DeliveryOption.PICK_UP,
+                    onClick = { onDeliveryOptionSelected(DeliveryOption.PICK_UP) }
+                )
+                SelectableChip(
+                    label = "Deliver to Table",
+                    isSelected = deliveryOption == DeliveryOption.DELIVER_TO_TABLE,
+                    onClick = { onDeliveryOptionSelected(DeliveryOption.DELIVER_TO_TABLE) }
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Divider(modifier = Modifier.padding(bottom = 16.dp))
+            Text("Payment Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SelectableChip(
+                    label = "Cash",
+                    isSelected = paymentOption == PaymentOption.CASH,
+                    onClick = { onPaymentOptionSelected(PaymentOption.CASH) }
+                )
+                SelectableChip(
+                    label = "QRIS",
+                    isSelected = paymentOption == PaymentOption.QRIS,
+                    onClick = { onPaymentOptionSelected(PaymentOption.QRIS) }
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Total Payment", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Rp ${NumberFormat.getNumberInstance(Locale.US).format(totalPrice)}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onOrderClick,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006970))
+            ) {
+                Text("Order Now", fontSize = 16.sp)
             }
         }
     }
@@ -124,36 +205,6 @@ private fun CartHeader(navController: NavController) {
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-fun VendorCartCard(
-    groupedItem: GroupedCartItem,
-    onIncrease: (Int) -> Unit,
-    onDecrease: (Int) -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = groupedItem.vendor.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            groupedItem.items.forEach { (foodItem, quantity) ->
-                CartItemRow(
-                    foodItem = foodItem,
-                    quantity = quantity,
-                    onIncrease = { onIncrease(foodItem.id) },
-                    onDecrease = { onDecrease(foodItem.id) }
-                )
-            }
-        }
     }
 }
 
@@ -199,58 +250,6 @@ fun CartItemRow(
     }
 }
 
-@Composable
-fun DeliveryOptionCard(selectedOption: DeliveryOption, onOptionSelected: (DeliveryOption) -> Unit) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Delivery Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SelectableChip(
-                    label = "Pick Up",
-                    isSelected = selectedOption == DeliveryOption.PICK_UP,
-                    onClick = { onOptionSelected(DeliveryOption.PICK_UP) }
-                )
-                SelectableChip(
-                    label = "Deliver to Table",
-                    isSelected = selectedOption == DeliveryOption.DELIVER_TO_TABLE,
-                    onClick = { onOptionSelected(DeliveryOption.DELIVER_TO_TABLE) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun PaymentOptionCard(selectedOption: PaymentOption, onOptionSelected: (PaymentOption) -> Unit) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Payment Option", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SelectableChip(
-                    label = "Cash",
-                    isSelected = selectedOption == PaymentOption.CASH,
-                    onClick = { onOptionSelected(PaymentOption.CASH) }
-                )
-                SelectableChip(
-                    label = "QRIS",
-                    isSelected = selectedOption == PaymentOption.QRIS,
-                    onClick = { onOptionSelected(PaymentOption.QRIS) }
-                )
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectableChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -272,53 +271,9 @@ fun SelectableChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun TotalSummaryCard(totalPrice: Int, onOrderClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Total Payment", style = MaterialTheme.typography.titleMedium)
-                Text(
-                    text = "Rp ${NumberFormat.getNumberInstance(Locale.US).format(totalPrice)}",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onOrderClick,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF006970))
-            ) {
-                Text("Order Now", fontSize = 16.sp)
-            }
-        }
-    }
-}
-
-@Composable
 fun OutlinedIconButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     OutlinedButton(onClick = onClick, shape = CircleShape, contentPadding = PaddingValues(0.dp), modifier = modifier) {
         content()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CartScreenPreview() {
-    KantinGoTheme {
-        CartScreen(navController = rememberNavController(), cartViewModel = viewModel())
     }
 }
 
