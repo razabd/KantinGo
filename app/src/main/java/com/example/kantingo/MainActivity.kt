@@ -1,5 +1,3 @@
-// file: app/src/main/java/com/example/kantingo/MainActivity.kt
-
 package com.example.kantingo
 
 import android.os.Bundle
@@ -32,7 +30,6 @@ class MainActivity : ComponentActivity() {
             KantinGoTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    // Membuat instance CartViewModel yang akan dibagikan ke screen yang membutuhkan
                     val cartViewModel: CartViewModel = viewModel()
 
                     NavHost(
